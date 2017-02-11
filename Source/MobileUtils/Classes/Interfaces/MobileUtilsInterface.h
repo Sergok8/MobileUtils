@@ -1,6 +1,6 @@
 // Mobile Utils Plugin
 // Created by Patryk Stepniewski
-// Copyright (c) 2014-2017 gameDNA studio. All Rights Reserved.
+// Copyright (c) 2014-2016 gameDNA studio. All Rights Reserved.
 
 #pragma once
 
@@ -28,4 +28,10 @@ public:
 	* @return - Unique Device ID
 	*/
 	virtual FString GetPersistentUniqueDeviceId();
+
+
+	virtual bool GetCurrentLocation(double* Coords) = 0;
+	virtual void StartLocationUpdates(float IntervalSeconds) = 0;
+	virtual void StopLocationUpdates() = 0;
+	virtual bool GetGoogleSignInAccount(struct FGoogleSignInAccount* Result) = 0;
 };

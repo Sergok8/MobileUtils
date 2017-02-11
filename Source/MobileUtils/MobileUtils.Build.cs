@@ -1,6 +1,6 @@
 // Mobile Utils Plugin
 // Created by Patryk Stepniewski
-// Copyright (c) 2014-2017 gameDNA studio. All Rights Reserved.
+// Copyright (c) 2014-2016 gameDNA studio. All Rights Reserved.
 
 using System.IO;
 
@@ -58,9 +58,9 @@ namespace UnrealBuildTool.Rules
 			// Additional Frameworks and Libraries for Android
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
+                                PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemGooglePlay"});
 				PrivateDependencyModuleNames.AddRange(new string[] { "Launch" });
-				string PluginPath = Utils.MakePathRelativeTo(ModuleDirectory, BuildConfiguration.RelativeEnginePath);
-				AdditionalPropertiesForReceipt.Add(new ReceiptProperty("AndroidPlugin", Path.Combine(PluginPath, "MobileUtils_APL.xml")));
+				AdditionalPropertiesForReceipt.Add(new ReceiptProperty("AndroidPlugin", Path.Combine(ModuleDirectory, "MobileUtils_APL.xml")));
 			}
 		}
 	}
