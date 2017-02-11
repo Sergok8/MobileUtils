@@ -165,7 +165,7 @@ static void geo_to_ecef(const double* geo, double* ecef)//Results go in ecef (x,
 }
 
 
-void UMobileUtilsBlueprintLibrary::ConvertGPSToWorld(const FGPSLocation& WorldOrigin, const FGPSLocation& Location, FVector& WorldPosition)
+void UMobileUtilsBlueprintLibrary::ConvertGPS_ToWorld(const FGPSLocation& WorldOrigin, const FGPSLocation& Location, FVector& WorldPosition)
 {
 	double P0[3];
 	double P1[3];
@@ -185,4 +185,12 @@ void UMobileUtilsBlueprintLibrary::ConvertWorldToGPS(const FGPSLocation& WorldOr
 	P0[1] += WorldPosition.X / 100.0;
 	P0[2] += WorldPosition.Z / 100.0;
 	ecef_to_geo(P0, &Location.Latitude);
+}
+
+void UMobileUtilsBlueprintLibrary::SetCoordinates(const FString& Latitude, const FString& Longitude, const FString& Altitude,
+	FGPSLocation& Location)
+{
+	Location.Latitude = FCString::Atod(*Latitude);
+	Location.Longitude = FCString::Atod(*Longitude);
+	Location.Altitude = FCString::Atod(*Altitude);
 }

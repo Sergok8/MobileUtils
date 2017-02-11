@@ -62,7 +62,7 @@ class MOBILEUTILS_API UMobileUtilsBlueprintLibrary : public UBlueprintFunctionLi
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = MobileUtils, meta=(Keywords="gps"))
 		static bool GetCurrentLocation(FGPSLocation& Location);
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = MobileUtils, meta = (Keywords = "gps"))
+	UFUNCTION(BlueprintPure, BlueprintPure, Category = MobileUtils, meta = (Keywords = "gps"))
 		static void GetCoordinates(const FGPSLocation& Location, FString& Latitude, FString& Longitude, FString& Altitude);
 	UFUNCTION(BlueprintCallable, Category = MobileUtils, meta=(IntervalSeconds="5.0", Keywords="gps"))
 		static void StartLocationUpdates(float IntervalSeconds);
@@ -70,8 +70,10 @@ class MOBILEUTILS_API UMobileUtilsBlueprintLibrary : public UBlueprintFunctionLi
 		static void StopLocationUpdates();
 	UFUNCTION(BlueprintCallable, Category = MobileUtils, meta = (Keywords = "login"))
 		static void GetGoogleSignInAccount(FGoogleSignInAccount& Result, bool& bIsAvailable);
-	UFUNCTION(BlueprintCallable, Category = MobileUtils, meta = (Keywords = "gps"))
-		void ConvertGPSToWorld(const FGPSLocation& WorldGPSOrigin, const FGPSLocation& Location, FVector& WorldPosition);
-	UFUNCTION(BlueprintCallable, Category = MobileUtils, meta = (Keywords = "gps"))
-		void ConvertWorldToGPS(const FGPSLocation& WorldGPSOrigin, const FVector& WorldPosition, FGPSLocation& Location);
+	UFUNCTION(BlueprintPure, Category = MobileUtils, meta = (Keywords = "gps"))
+		static void ConvertGPS_ToWorld(const FGPSLocation& WorldGPS_Origin, const FGPSLocation& Location, FVector& WorldPosition);
+	UFUNCTION(BlueprintPure, Category = MobileUtils, meta = (Keywords = "gps"))
+		static void ConvertWorldToGPS(const FGPSLocation& WorldGPS_Origin, const FVector& WorldPosition, FGPSLocation& Location);
+	UFUNCTION(BlueprintPure, Category = MobileUtils, meta = (Altitude = "0.0", Keywords = "gps"))
+		static void SetCoordinates(const FString& Latitude, const FString& Longitude, const FString& Altitude, FGPSLocation& Location);
 };
