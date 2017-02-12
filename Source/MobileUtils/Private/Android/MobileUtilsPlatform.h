@@ -24,6 +24,12 @@ public:
 	virtual void StopLocationUpdates();
 	virtual bool GetGoogleSignInAccount(struct FGoogleSignInAccount* Result) override;
 
+	virtual void StartCamera() override;
+	virtual int32 GetCameraWidth() override;
+	virtual int32 GetCameraHeight() override;
+	virtual bool UpdateCameraTexture(int32 DestTextureId) override;
+	virtual void StopCamera() override;
+
 	// JNI Methods
 	static jmethodID CheckInternetConnectionMethod;
 	static jmethodID CheckGooglePlayServicesMethod;
@@ -35,4 +41,12 @@ public:
 	static jmethodID GoogleSignInAccountIdMethod;
 	static jmethodID GoogleSignInAccountEmailMethod;
 	static jmethodID GoogleSignInAccountDisplayNameMethod;
+
+
+	static jmethodID StartCameraMethod;
+	static jmethodID GetCameraWidthMethod;
+	static jmethodID GetCameraHeightMethod;
+	static jmethodID UpdateCameraTextureMethod;
+	static jmethodID StopCameraMethod;
+
 };

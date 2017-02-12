@@ -76,4 +76,5 @@ class MOBILEUTILS_API UMobileUtilsBlueprintLibrary : public UBlueprintFunctionLi
 		static void ConvertWorldToGPS(const FGPSLocation& WorldGPS_Origin, const FVector& WorldPosition, FGPSLocation& Location);
 	UFUNCTION(BlueprintPure, Category = MobileUtils, meta = (Altitude = "0.0", Keywords = "gps"))
 		static void SetCoordinates(const FString& Latitude, const FString& Longitude, const FString& Altitude, FGPSLocation& Location);
+
 };

@@ -21,6 +21,11 @@ jmethodID FMobileUtilsPlatform::GoogleSignInAccountDisplayNameMethod;
 static jmethodID GetGoogleSignInAccountClassMethod;
 static jclass GoogleSignInAccountClass;
 
+jmethodID FMobileUtilsPlatform::StartCameraMethod;
+jmethodID FMobileUtilsPlatform::GetCameraWidthMethod;
+jmethodID FMobileUtilsPlatform::GetCameraHeightMethod;
+jmethodID FMobileUtilsPlatform::UpdateCameraTextureMethod;
+jmethodID FMobileUtilsPlatform::StopCameraMethod;
 
 FMobileUtilsPlatform::FMobileUtilsPlatform()
 {
@@ -34,6 +39,12 @@ FMobileUtilsPlatform::FMobileUtilsPlatform()
 		StopLocationUpdatesMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_StopLocationUpdates", "()V", false);
 		GetGoogleSignInAccountMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_GetGoogleSignInAccount", "()Ljava/lang/Object;", false);
 		GetGoogleSignInAccountClassMethod = FJavaWrapper::FindStaticMethod(Env, FJavaWrapper::GameActivityClassID, "GetGoogleSignInAccountClass", "()Ljava/lang/Class;", false);
+		
+		StartCameraMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_StartCamera", "()V", false);
+		StopCameraMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_StopCamera", "()V", false);
+		GetCameraWidthMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_GetCameraWidth", "()I", false);
+		GetCameraHeightMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_GetCameraHeight", "()I", false);
+		UpdateCameraTextureMethod = FJavaWrapper::FindMethod(Env, FJavaWrapper::GameActivityClassID, "AndroidThunkJava_UpdateCameraTexture", "(I)Z", false);
 	}
 }
 
@@ -185,4 +196,51 @@ FString FMobileUtilsPlatform::GetPersistentUniqueDeviceId()
 		Env->DeleteLocalRef(ResultDeviceIdString);
 	}
 	return ResultDeviceId;
+}
+
+
+bool FMobileUtilsPlatform::UpdateCameraTexture(int32 DestTexture)
+{
+	bool bResult = false;
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		bResult = FJavaWrapper::CallBooleanMethod(Env, FJavaWrapper::GameActivityThis, FMobileUtilsPlatform::UpdateCameraTextureMethod, DestTexture);
+	}
+	return bResult;
+}
+
+void FMobileUtilsPlatform::StartCamera()
+{
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, FMobileUtilsPlatform::StartCameraMethod);
+	}
+}
+
+void FMobileUtilsPlatform::StopCamera()
+{
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		FJavaWrapper::CallVoidMethod(Env, FJavaWrapper::GameActivityThis, FMobileUtilsPlatform::StopCameraMethod);
+	}
+}
+
+int32 FMobileUtilsPlatform::GetCameraWidth()
+{
+	int32 Result = 0;
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		Result = FJavaWrapper::CallIntMethod(Env, FJavaWrapper::GameActivityThis, FMobileUtilsPlatform::GetCameraWidthMethod);
+	}
+	return Result;
+}
+
+int32 FMobileUtilsPlatform::GetCameraHeight()
+{
+	int32 Result = 0;
+	if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+	{
+		Result = FJavaWrapper::CallIntMethod(Env, FJavaWrapper::GameActivityThis, FMobileUtilsPlatform::GetCameraHeightMethod);
+	}
+	return Result;
 }

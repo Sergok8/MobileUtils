@@ -34,4 +34,10 @@ public:
 	virtual void StartLocationUpdates(float IntervalSeconds) = 0;
 	virtual void StopLocationUpdates() = 0;
 	virtual bool GetGoogleSignInAccount(struct FGoogleSignInAccount* Result) = 0;
+
+	virtual void StartCamera() = 0;
+	virtual int32 GetCameraWidth() = 0;
+	virtual int32 GetCameraHeight() = 0;
+	virtual bool UpdateCameraTexture(int32 DestTextureId) = 0;
+	virtual void StopCamera() = 0;
 };

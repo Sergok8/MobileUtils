@@ -17,6 +17,7 @@
   <prebuildCopies>
 	<copyDir src="$S(PluginDir)/../../ThirdPartyLibraries/Android"
 					dst="$S(BuildDir)" />
+
   </prebuildCopies>
   <AARImports>
 	<insertValue value="repositories $S(EngineDir)/Source/ThirdParty/Android/extras/google"/>
@@ -72,6 +73,10 @@
 
   </androidManifestUpdates>
 
+  <resourceCopies>
+      <copyDir src="$S(PluginDir)/../Java/src" dst="$S(BuildDir)/src"/>
+   </resourceCopies>
+
   <gameActivityOnStartAdditions>
     <insert>
       mobileUtilsHandler.start();
@@ -91,9 +96,49 @@
 
   <gameActivityClassAdditions>
     <insert>
+   /****/
 
-      static void oasisDebug(String msg) {
-         android.util.Log.v("Oasis", msg);
+      mobileutils.cameratexture.CameraTexture cameraTexture;
+      boolean cameraTextureNeedsAllocation = true;
+
+      public void AndroidThunkJava_StartCamera() {
+        if (cameraTexture == null) {
+          cameraTexture = new mobileutils.cameratexture.CameraTexture();
+        }
+        try {
+          cameraTexture.start();
+        } catch (IOException exc) {
+          mobileUtilsDebug(exc.getMessage());
+        }
+      }
+      public void AndroidThunkJava_StopCamera() {
+        if (cameraTexture != null) {
+          cameraTexture.stop();
+          cameraTextureNeedsAllocation = true;
+        }
+      }
+
+      public boolean AndroidThunkJava_UpdateCameraTexture(int destTexture) {
+        if (cameraTexture != null) {
+           boolean result = cameraTexture.render(destTexture, cameraTextureNeedsAllocation);
+           if (result) {
+             cameraTextureNeedsAllocation = false;
+           }
+           return result;
+        }
+        return false;
+      }
+
+      public int AndroidThunkJava_GetCameraWidth() {
+         return cameraTexture != null ? cameraTexture.getWidth() : 0;
+      }
+      public int AndroidThunkJava_GetCameraHeight() {
+        return cameraTexture != null ? cameraTexture.getHeight() : 0;
+      }
+         
+
+      static void mobileUtilsDebug(String msg) {
+         android.util.Log.v("MobileUtils", msg);
       }
       class MobileUtilsHandler implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
         private GoogleApiClient mobileUtilsApiClient;
@@ -161,15 +206,15 @@
           
         @Override
         public void onConnected(Bundle connectionHint) {
-          oasisDebug("connected to Google play service");
+          mobileUtilsDebug("connected to Google play service");
         }
         @Override
         public void onConnectionSuspended(int cause) {
-          oasisDebug("connection to Google play service suspended: "+cause);
+          mobileUtilsDebug("connection to Google play service suspended: "+cause);
         }
         @Override
         public void onConnectionFailed(ConnectionResult result) {
-          oasisDebug("connection to Google play service failed:" + result);
+          mobileUtilsDebug("connection to Google play service failed:" + result);
         }
         public Location getCurrent() {
             applyLocationUpdatesRequest();
@@ -218,9 +263,9 @@
                Auth.GoogleSignInApi.silentSignIn(client);
                if (opr.isDone()) {
                   googleSignInAccount = opr.get().getSignInAccount();
-                  oasisDebug("Google sign in account obtained silently");
+                  mobileUtilsDebug("Google sign in account obtained silently");
                } else {
-                   oasisDebug("Google sign in activity started");
+                   mobileUtilsDebug("Google sign in activity started");
                                     
                    signInIntent = Auth.GoogleSignInApi.getSignInIntent(client);
                    startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -239,11 +284,11 @@
               GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
               if (result != null &amp;&amp; result.isSuccess()) {
                  googleSignInAccount = result.getSignInAccount();
-                 oasisDebug("Google sign in succeeded: "+googleSignInAccount);
+                 mobileUtilsDebug("Google sign in succeeded: "+googleSignInAccount);
               }
               else
               {
-                 oasisDebug("Google sign in failed: "+(result != null ? result.getStatus() : "null"));
+                 mobileUtilsDebug("Google sign in failed: "+(result != null ? result.getStatus() : "null"));
               }
           }
           else if (requestCode == RC_CHOOSE_ACCT)
@@ -253,7 +298,7 @@
              } else {
                 accountName = "";
              }
-             oasisDebug("Google choose account: "+accountName);
+             mobileUtilsDebug("Google choose account: "+accountName);
           }
               
               
