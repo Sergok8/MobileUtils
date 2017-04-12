@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include "CoreUObject.h"
-#include "Engine.h"
-
-#include "IMobileUtils.h"
-#include "MobileUtilsClasses.h"
+#include "CoreMinimal.h"
 #include "JoyCurrentClassFuncLine.h"
-
 DECLARE_LOG_CATEGORY_EXTERN(LogMobileUtils, Log, All);

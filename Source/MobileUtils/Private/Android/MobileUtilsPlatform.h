@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "MobileUtilsPrivatePCH.h"
 #include "Interfaces/MobileUtilsInterface.h"
 #include "Android/AndroidJNI.h"
 #include "Android/AndroidApplication.h"

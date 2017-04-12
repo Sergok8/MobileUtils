@@ -14,7 +14,7 @@ struct FGPSLocation
 	double Latitude;
 	double Longitude;
 	double Altitude;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Mobile")
 		float Accuracy;
 };
 
@@ -22,11 +22,11 @@ USTRUCT(BlueprintType)
 struct FGoogleSignInAccount
 {
 	GENERATED_USTRUCT_BODY()
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Mobile")
 		FString Id;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Mobile")
 		FString Email;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Mobile")
 		FString DisplayName;
 };
 

@@ -2,11 +2,9 @@
 // Created by Patryk Stepniewski
 // Copyright (c) 2014-2017 gameDNA. All Rights Reserved.
 
-#include "MobileUtilsPrivatePCH.h"
 #include "MobileUtilsPlatform.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
 #include "MobileutilsBlueprintLibrary.h"
-
 
 jmethodID FMobileUtilsPlatform::CheckInternetConnectionMethod;
 jmethodID FMobileUtilsPlatform::CheckGooglePlayServicesMethod;

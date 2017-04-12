@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-#include "MobileUtilsPrivatePCH.h"
+
 #include "MobileCameraComponent.h"
+#include "IMobileUtils.h"
+#include "MobileUtilsPrivatePCH.h"
 
 // Sets default values for this component's properties
 UMobileCameraComponent::UMobileCameraComponent()
@@ -10,7 +12,6 @@ UMobileCameraComponent::UMobileCameraComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	VideoTexture = nullptr;
 	bCameraIsInitialized = false;
-	CountdownTime = 0x6666;
 	// ...
 }
 
@@ -20,9 +21,24 @@ void UMobileCameraComponent::BeginPlay()
 	Super::BeginPlay();
 	if (VideoTexture == nullptr)
 	{
+//		VideoTexture = UTexture2D::CreateTransient(1, 1, PF_R8G8B8A8);
+//		VideoTexture->UpdateResource();
+		
+		//	VideoTexture = Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), NULL, TEXT("Texture2D'/Game/Mannequin/Character/Textures/UE4_LOGO_CARD.UE4_LOGO_CARD'")));
 		VideoTexture = UTexture2D::CreateTransient(1, 1, PF_R8G8B8A8);
-		VideoTexture->UpdateResource();
+		if (!VideoTexture)
+		{
+			VLOG(LogMobileUtils, "Cannot create video texture!");
+		}
+		else
+		{
+			VideoTexture->UpdateResource();
+			VLOGM(LogMobileUtils, "Created video texture, dimensions: %f x %f", VideoTexture->GetSurfaceWidth(), VideoTexture->GetSurfaceHeight());
+		}
+
+		
 	}
+ 
 }
 
 void UMobileCameraComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)

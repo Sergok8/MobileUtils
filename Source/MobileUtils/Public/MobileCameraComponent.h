@@ -2,11 +2,13 @@
 
 #pragma once
 
+#include "Engine/Texture.h"
+#include "Engine/Texture2D.h"
 #include "Components/ActorComponent.h"
 #include "MobileCameraComponent.generated.h"
 
 UCLASS( ClassGroup=(Mobile), meta=(BlueprintSpawnableComponent) )
-class MOBILEUTILS_API UMobileCameraComponent : public USceneComponent
+class MOBILEUTILS_API UMobileCameraComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -14,10 +16,7 @@ public:
 	// Sets default values for this component's properties
 	UMobileCameraComponent();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	int32 CountdownTime;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(BlueprintReadOnly, Category = "Mobile", meta = (Keywords = "camera"))
 	UTexture* VideoTexture;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Mobile", meta = (Keywords = "camera"))

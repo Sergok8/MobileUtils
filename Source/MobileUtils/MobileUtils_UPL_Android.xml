@@ -566,7 +566,7 @@
 		Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
 		//ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		//thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-		nativeOnSelectPhoto(0, 0, null);
+		//nativeOnSelectPhoto(0, 0, null);
 	}
 	
 	public void onSelectFromGalleryResult(Intent data)
@@ -583,7 +583,7 @@
 				e.printStackTrace();
 			}
 		}
-		nativeOnSelectPhoto(0, 0, null);
+		//nativeOnSelectPhoto(0, 0, null);
 	}
 	
 
