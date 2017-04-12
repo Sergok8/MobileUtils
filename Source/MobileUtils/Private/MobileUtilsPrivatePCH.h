@@ -9,5 +9,6 @@
 
 #include "IMobileUtils.h"
 #include "MobileUtilsClasses.h"
+#include "JoyCurrentClassFuncLine.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMobileUtils, Log, All);

@@ -15,28 +15,378 @@
   </proguardAdditions>
 
   <prebuildCopies>
-	<copyDir src="$S(PluginDir)/../../ThirdPartyLibraries/Android"
-					dst="$S(BuildDir)" />
+	<copyDir src="$S(PluginDir)/../../ThirdPartyLibraries/Android" dst="$S(BuildDir)" />
   </prebuildCopies>
+  <AARImports>
+	<insertValue value="repositories $S(EngineDir)/Source/ThirdParty/Android/extras/google"/>
+	<insertNewline/>
+	<insert>com.google.android.gms,play-services-location,9.2.0</insert>
+	<insertNewline/>
+	<insert>com.google.android.gms,play-services-auth-base,9.2.0</insert>
+	<insert>com.google.android.gms,play-services-auth,9.2.0</insert>
+</AARImports>
 
   <gameActivityImportAdditions>
 	<insert>
-	  import android.net.ConnectivityManager;
-	  import android.net.NetworkInfo;
-	  import com.google.android.gms.common.ConnectionResult;
-	  import android.telephony.TelephonyManager;
-	  import android.provider.Settings.Secure;
-	  import android.net.wifi.WifiManager;
-	  import java.security.MessageDigest;
-	  import java.security.NoSuchAlgorithmException;
+		import android.net.ConnectivityManager;
+		import android.net.NetworkInfo;
+		import com.google.android.gms.common.ConnectionResult;
+		import android.telephony.TelephonyManager;
+		import android.provider.Settings.Secure;
+		import android.net.wifi.WifiManager;
+		import java.security.MessageDigest;
+		import java.security.NoSuchAlgorithmException;
+		import android.location.Location;
+		import com.google.android.gms.location.LocationServices;
+		import com.google.android.gms.location.LocationRequest;
+		import com.google.android.gms.location.LocationListener;
+		import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+		import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+		import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+		import com.google.android.gms.auth.api.Auth;
+		import com.google.android.gms.common.api.OptionalPendingResult;
+		import com.google.android.gms.common.Scopes;
+		import com.google.android.gms.common.api.Scope;
+		import com.google.android.gms.common.AccountPicker;
+		import android.accounts.AccountManager;
+		import android.util.Log;
+
+		import android.annotation.TargetApi;
+		import android.os.Bundle;
+
+		import android.Manifest;
+		import android.app.Activity;
+
+		import android.support.v4.app.ActivityCompat;
+		import android.support.v4.content.ContextCompat;
+
+		import java.io.IOException;
+		import android.graphics.Bitmap;
+		import android.provider.MediaStore;
 	</insert>
   </gameActivityImportAdditions>
 
   <androidManifestUpdates>
+		<trace enable="true"/>
+		<addElements tag="application">
+			<activity
+				xmlns:android="http://schemas.android.com/apk/res/android"
+				android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+				android:screenOrientation="landscape"
+				android:windowSoftInputMode="stateAlwaysHidden|adjustPan"
+			/>
+		</addElements>
+
+		<addPermission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+		<addPermission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+		<trace enable="false"/>
+
+		<addPermission android:name="android.permission.CAMERA"/>
+		<addPermission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+		<addFeature android:name="android.hardware.camera"/>
+		<addFeature android:name="android.hardware.camera.autofocus"/>
   </androidManifestUpdates>
 
+  <resourceCopies>
+		<copyDir src="$S(PluginDir)/../Java/src" dst="$S(BuildDir)/src"/>
+   </resourceCopies>
+
+  <gameActivityOnStartAdditions>
+		<insert>
+			mobileUtilsHandler.start();
+		</insert>
+ </gameActivityOnStartAdditions>
+
+ <gameActivityOnStopAdditions>
+		<insert>
+			mobileUtilsHandler.stop();
+		</insert>
+ </gameActivityOnStopAdditions>
+ <gameActivityOnActivityResultAdditions>
+		<insert>
+			handleSignInActivityResult(requestCode, resultCode, data);
+		</insert>
+		<insert>
+			handlePhotoTextureActivity(requestCode, resultCode, data);
+		</insert>
+ </gameActivityOnActivityResultAdditions>
+
   <gameActivityClassAdditions>
-	<insert>
+    <insert>
+   /*
+    * unktomi stuff
+    */
+
+	mobileutils.cameratexture.CameraTexture cameraTexture;
+	boolean cameraTextureNeedsAllocation = true;
+
+	public void AndroidThunkJava_StartCamera()
+	{
+		if (cameraTexture == null)
+		{
+			cameraTexture = new mobileutils.cameratexture.CameraTexture();
+		}
+		try
+		{
+			cameraTexture.start();
+		}
+		catch (IOException exc)
+		{
+			mobileUtilsDebug(exc.getMessage());
+		}
+	}
+	
+	public void AndroidThunkJava_StopCamera()
+	{
+		if (cameraTexture != null)
+		{
+			cameraTexture.stop();
+			cameraTextureNeedsAllocation = true;
+		}
+	}
+
+	public boolean AndroidThunkJava_UpdateCameraTexture(int destTexture)
+	{
+		if (cameraTexture != null)
+		{
+			boolean result = cameraTexture.render(destTexture, cameraTextureNeedsAllocation);
+			if (result)
+			{
+				cameraTextureNeedsAllocation = false;
+			}
+			return result;
+		}
+		return false;
+	}
+
+	public int AndroidThunkJava_GetCameraWidth()
+	{
+		return cameraTexture != null ? cameraTexture.getWidth() : 0;
+	}
+	
+	public int AndroidThunkJava_GetCameraHeight()
+	{
+		return cameraTexture != null ? cameraTexture.getHeight() : 0;
+	}
+	
+
+	static void mobileUtilsDebug(String msg)
+	{
+		android.util.Log.v("MobileUtils", msg);
+	}
+	
+	class MobileUtilsHandler implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
+	{
+		private GoogleApiClient mobileUtilsApiClient;
+		private Location currentLocation;
+
+		private boolean locationUpdatesRequested;
+		LocationRequest req;
+
+		public GoogleApiClient GetGoogleApiClient()
+		{
+			return mobileUtilsApiClient;
+		}
+		
+		boolean isConnected()
+		{
+			return mobileUtilsApiClient != null &amp;&amp; mobileUtilsApiClient.isConnected();
+		}
+		
+		public void start()
+		{
+			if (mobileUtilsApiClient == null)
+			{
+				final GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+				.requestScopes(new Scope(Scopes.PLUS_LOGIN))
+				.requestScopes(new Scope(Scopes.PLUS_ME))
+				.requestEmail()
+				.build();
+
+				mobileUtilsApiClient = new GoogleApiClient.Builder(GameActivity.this)
+				.addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this)
+				.addApi(LocationServices.API)
+				.addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+				.build();
+			}
+			mobileUtilsApiClient.connect();
+		}
+          
+		public void stop()
+		{
+			mobileUtilsApiClient.disconnect();
+		}
+		
+		public void stopLocationUpdates()
+		{
+			if (locationUpdatesRequested)
+			{
+				if (isConnected())
+				{
+					LocationServices.FusedLocationApi.removeLocationUpdates(mobileUtilsApiClient, this);
+				}
+				locationUpdatesRequested = false;
+			}
+			req = null; 
+		}
+		
+		public void startLocationUpdates(int interval)
+		{
+			stopLocationUpdates();
+			req = LocationRequest.create();
+			req.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+			req.setInterval(interval);
+			applyLocationUpdatesRequest();
+		}
+		
+		private void applyLocationUpdatesRequest()
+		{
+			if (req == null) return;
+			if (isConnected())
+			{
+				LocationServices.FusedLocationApi.requestLocationUpdates(
+				mobileUtilsApiClient, req, this, android.os.Looper.getMainLooper());
+				req = null;
+				locationUpdatesRequested = true;
+			}
+		}
+		
+		@Override
+		public void onLocationChanged(Location location)
+		{
+			currentLocation = location;
+		}
+
+		@Override
+		public void onConnected(Bundle connectionHint)
+		{
+			mobileUtilsDebug("connected to Google play service");
+		}
+		
+		@Override
+		public void onConnectionSuspended(int cause)
+		{
+			mobileUtilsDebug("connection to Google play service suspended: " + cause);
+		}
+		
+		@Override
+		public void onConnectionFailed(ConnectionResult result)
+		{
+			mobileUtilsDebug("connection to Google play service failed:" + result);
+		}
+		
+		public Location getCurrent()
+		{
+            applyLocationUpdatesRequest();
+            return currentLocation;
+        }
+      }
+	  
+	final MobileUtilsHandler mobileUtilsHandler = new MobileUtilsHandler();
+
+	public void AndroidThunkJava_StartLocationUpdates(int intervalMillis)
+	{
+		mobileUtilsHandler.startLocationUpdates(intervalMillis);
+	}
+
+	public void AndroidThunkJava_StopLocationUpdates()
+	{
+		mobileUtilsHandler.stopLocationUpdates();
+	}
+
+	static public Class GetGoogleSignInAccountClass()
+	{
+		return GoogleSignInAccount.class;
+	} // hack
+
+	final int RC_SIGN_IN = 91147;
+	final int RC_CHOOSE_ACCT = 81147;
+	Intent signInIntent;
+	GoogleSignInAccount googleSignInAccount;
+	Intent chooseAccountIntent;
+	String accountName;
+	
+	public Object AndroidThunkJava_GetGoogleSignInAccount()
+	{
+		if (chooseAccountIntent == null)
+		{
+			chooseAccountIntent = AccountPicker.newChooseAccountIntent(null, null, new String[]{"com.google"}, false, "to use for Dreamworld", null, null, null);
+			startActivityForResult(chooseAccountIntent, RC_CHOOSE_ACCT);
+		}
+		return accountName;   
+	}
+
+
+	GoogleSignInAccount doGoogleSignIn() // doesn't work
+	{
+		if (signInIntent == null)
+		{
+			GoogleApiClient client = mobileUtilsHandler.GetGoogleApiClient();
+
+			if(client != null &amp;&amp; client.isConnected())
+			{
+				OptionalPendingResult&lt;GoogleSignInResult&gt; opr = Auth.GoogleSignInApi.silentSignIn(client);
+				if (opr.isDone())
+				{
+					googleSignInAccount = opr.get().getSignInAccount();
+					mobileUtilsDebug("Google sign in account obtained silently");
+				}
+				else
+				{
+					mobileUtilsDebug("Google sign in activity started");
+					signInIntent = Auth.GoogleSignInApi.getSignInIntent(client);
+					startActivityForResult(signInIntent, RC_SIGN_IN);
+				}
+			}
+		}
+		return googleSignInAccount;
+	}
+
+	void handleSignInActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		if (requestCode == RC_SIGN_IN)
+		{
+			GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+			if (result != null &amp;&amp; result.isSuccess())
+			{
+				googleSignInAccount = result.getSignInAccount();
+				mobileUtilsDebug("Google sign in succeeded: "+googleSignInAccount);
+			}
+			else
+			{
+				mobileUtilsDebug("Google sign in failed: "+(result != null ? result.getStatus() : "null"));
+			}
+		}
+		else if (requestCode == RC_CHOOSE_ACCT)
+		{
+			if (data != null)
+			{
+				accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+			}
+			else
+			{
+				accountName = "";
+			}
+			mobileUtilsDebug("Google choose account: "+accountName);
+		}
+	}
+
+
+	public boolean AndroidThunkJava_GetCurrentLocation(double[] coordinates)
+	{
+		if (coordinates == null || coordinates.length != 4) return false;
+		Location loc = mobileUtilsHandler.getCurrent();
+		if (loc == null) return false;
+		coordinates[0] = loc.getLatitude();
+		coordinates[1] = loc.getLongitude();
+		coordinates[2] = loc.getAltitude();
+		coordinates[3] = loc.getAccuracy();
+		return true;
+	}
+
+
 	public boolean AndroidThunkJava_CheckInternetConnection() 
 	{
 		ConnectivityManager connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -117,6 +467,159 @@
 		UniqueID = UniqueID.toUpperCase();
 		
 		return UniqueID;
+	}
+	
+	/*
+	 * SelectPhotoTexture stuff
+	 */
+	private static final int    REQUEST_READ_EXTERNAL_STORAGE = 1626,
+								REQUEST_CAPTURE_PHOTO = 1627,
+								REQUEST_SELECT_PHOTO = 1628;
+	private int userChoosenTask;
+	//public native boolean nativeOnSelectPhoto(int frameWidth, int frameHeight, byte[] data);
+	
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	public static boolean checkPermission(final Context context)
+	{
+		int currentAPIVersion = Build.VERSION.SDK_INT;
+		if(currentAPIVersion &gt;= Build.VERSION_CODES.M)
+		{
+			if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+			{
+				if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.READ_EXTERNAL_STORAGE))
+				{
+					AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
+					alertBuilder.setCancelable(true);
+					alertBuilder.setTitle("Permission necessary");
+					alertBuilder.setMessage("External storage permission is necessary");
+					alertBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+					{
+						@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+						public void onClick(DialogInterface dialog, int which)
+						{
+							ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
+						}
+					});
+					AlertDialog alert = alertBuilder.create();
+					alert.show();
+					
+				}
+				else
+				{
+					ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
+				}
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+	{
+		switch (requestCode)
+		{
+			case REQUEST_READ_EXTERNAL_STORAGE:
+				if (grantResults.length &gt; 0 &amp;&amp; grantResults[0] == PackageManager.PERMISSION_GRANTED)
+				{
+					switch (userChoosenTask)
+					{
+						case REQUEST_CAPTURE_PHOTO :
+							cameraIntent();
+							break;
+						case REQUEST_SELECT_PHOTO :
+							galleryIntent();
+							break;
+					}
+				}
+				else
+				{
+					//code for deny
+				}
+				break;
+		}
+	}
+
+	public void galleryIntent()
+	{
+		Intent intent = new Intent();
+		intent.setType("image/*");
+		intent.setAction(Intent.ACTION_GET_CONTENT);//
+		startActivityForResult(Intent.createChooser(intent, "Select File"),REQUEST_SELECT_PHOTO);
+	}
+	
+	public void cameraIntent()
+	{
+		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		startActivityForResult(intent, REQUEST_CAPTURE_PHOTO);
+	}
+	
+	public void onCaptureImageResult(Intent data)
+	{
+		Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+		//ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		//thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+		nativeOnSelectPhoto(0, 0, null);
+	}
+	
+	public void onSelectFromGalleryResult(Intent data)
+	{
+		Bitmap bm=null;
+		if (data != null)
+		{
+			try
+			{
+				bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		nativeOnSelectPhoto(0, 0, null);
+	}
+	
+
+	void handlePhotoTextureActivity(int requestCode, int resultCode, Intent data)
+	{
+		if (resultCode == Activity.RESULT_OK)
+		{
+			switch (requestCode)
+			{
+				case REQUEST_CAPTURE_PHOTO:
+				onCaptureImageResult(data);
+				break;
+
+				case REQUEST_SELECT_PHOTO:
+				onSelectFromGalleryResult(data);
+				break;
+			}
+		}
+	}
+	
+	public void AndroidThunkJava_selectImage(int CameraOrFile)
+	{
+		userChoosenTask = CameraOrFile;
+		boolean result=checkPermission(GameActivity.this);
+		if(result)
+		{
+			switch (userChoosenTask)
+			{
+				case REQUEST_CAPTURE_PHOTO :
+					cameraIntent();
+					break;
+				case REQUEST_SELECT_PHOTO :
+					galleryIntent();
+					break;
+			}
+		}
 	}
 	</insert>
   </gameActivityClassAdditions>

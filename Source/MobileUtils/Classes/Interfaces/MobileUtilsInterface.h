@@ -27,5 +27,23 @@ public:
 	*
 	* @return - Unique Device ID
 	*/
-	virtual FString GetPersistentUniqueDeviceId();
+	virtual FString GetPersistentUniqueDeviceId() = 0;
+	
+	/**
+	 * Selects a photo and returns a corresponding texture
+	 * @CameraOrFile: 0 - Camera, 1 - File
+	 */
+	virtual void SelectPhotoTexture(int32 CameraOrFile) = 0;
+
+
+	virtual bool GetCurrentLocation(double* Coords) = 0;
+	virtual void StartLocationUpdates(float IntervalSeconds) = 0;
+	virtual void StopLocationUpdates() = 0;
+	virtual bool GetGoogleSignInAccount(struct FGoogleSignInAccount* Result) = 0;
+
+	virtual void StartCamera() = 0;
+	virtual int32 GetCameraWidth() = 0;
+	virtual int32 GetCameraHeight() = 0;
+	virtual bool UpdateCameraTexture(int32 DestTextureId) = 0;
+	virtual void StopCamera() = 0;
 };

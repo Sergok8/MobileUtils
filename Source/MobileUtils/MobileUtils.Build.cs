@@ -58,6 +58,7 @@ namespace UnrealBuildTool.Rules
 			// Additional Frameworks and Libraries for Android
 			else if (Target.Platform == UnrealTargetPlatform.Android)
 			{
+				PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemGooglePlay"});
 				PrivateDependencyModuleNames.AddRange(new string[] { "Launch" });
 				string PluginPath = Utils.MakePathRelativeTo(ModuleDirectory, BuildConfiguration.RelativeEnginePath);
 				AdditionalPropertiesForReceipt.Add(new ReceiptProperty("AndroidPlugin", Path.Combine(PluginPath, "MobileUtils_UPL_Android.xml")));

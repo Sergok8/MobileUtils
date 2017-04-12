@@ -15,12 +15,39 @@ public:
 	FMobileUtilsPlatform();
 	virtual ~FMobileUtilsPlatform();
 
+
 	virtual bool CheckInternetConnection() override;
 	virtual bool CheckGooglePlayServices() override;
 	virtual FString GetPersistentUniqueDeviceId() override;
+	virtual void SelectPhotoTexture(int32 CameraOrFile) override;
+	virtual bool GetCurrentLocation(double* Coordinates);
+	virtual void StartLocationUpdates(float IntervalSeconds);
+	virtual void StopLocationUpdates();
+	virtual bool GetGoogleSignInAccount(struct FGoogleSignInAccount* Result) override;
+
+	virtual void StartCamera() override;
+	virtual int32 GetCameraWidth() override;
+	virtual int32 GetCameraHeight() override;
+	virtual bool UpdateCameraTexture(int32 DestTextureId) override;
+	virtual void StopCamera() override;
 
 	// JNI Methods
 	static jmethodID CheckInternetConnectionMethod;
 	static jmethodID CheckGooglePlayServicesMethod;
 	static jmethodID GetPersistentUniqueDeviceIdMethod;
+	static jmethodID SelectPhotoTextureMethod;
+	static jmethodID GetCurrentLocationMethod;
+	static jmethodID StartLocationUpdatesMethod;
+	static jmethodID StopLocationUpdatesMethod;
+	static jmethodID GetGoogleSignInAccountMethod;
+	static jmethodID GoogleSignInAccountIdMethod;
+	static jmethodID GoogleSignInAccountEmailMethod;
+	static jmethodID GoogleSignInAccountDisplayNameMethod;
+
+
+	static jmethodID StartCameraMethod;
+	static jmethodID GetCameraWidthMethod;
+	static jmethodID GetCameraHeightMethod;
+	static jmethodID UpdateCameraTextureMethod;
+	static jmethodID StopCameraMethod;
 };

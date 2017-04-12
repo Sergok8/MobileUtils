@@ -2,7 +2,6 @@
 // Created by Patryk Stepniewski
 // Copyright (c) 2014-2017 gameDNA. All Rights Reserved.
 
-#include "IMobileUtils.h"
 #include "MobileUtilsPrivatePCH.h"
 #include "MobileUtilsBlueprintLibrary.h"
 
@@ -22,6 +21,7 @@ IMPLEMENT_MODULE(FMobileUtils, MobileUtils)
 // Startup Module
 void FMobileUtils::StartupModule()
 {	
+	UE_LOG(LogMobileUtils,Warning,TEXT("FMobileUtils::StartupModule() start!"));
 #if PLATFORM_ANDROID || PLATFORM_IOS
 	PlatformInterface = MakeShareable(new FMobileUtilsPlatform());
 #endif
